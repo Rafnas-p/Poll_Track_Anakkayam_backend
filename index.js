@@ -22,8 +22,7 @@ const port = 3001;
 
 // Configure CORS to allow requests from your Vite frontend
 const corsOptions = {
-  origin: 'http://localhost:5173',
-  optionsSuccessStatus: 200
+  origin: '*',
 };
 app.use(cors(corsOptions));
 app.use(express.json());
