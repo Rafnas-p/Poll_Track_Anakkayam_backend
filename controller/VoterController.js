@@ -56,8 +56,6 @@ export const createVoter = async (req, res) => {
       serialNumber
     } = req.body;
     
-    console.log('Request body:', req.body);
-    console.log('Ward:', ward, 'Panchayat:', panchayat, 'Booth:', booth);
 
     // If ward/panchayat not provided, get them from booth
     let wardId = ward;
@@ -98,7 +96,6 @@ export const createVoter = async (req, res) => {
         uploadedAt: new Date()
       };
     }
-    console.log(photoData,'photoData');
     
     // Create Voter
     const newVoter = await Voter.create({
@@ -116,7 +113,6 @@ export const createVoter = async (req, res) => {
       serialNumber,
       photo: photoData
     });
-    console.log(newVoter,'newVoter');
 
     res.status(201).json({
       success: true,

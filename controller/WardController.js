@@ -1,8 +1,8 @@
 import Booth from "../model/Booth.js";
 import Panchayat from "../model/Panchayat.js";
 import Ward from "../model/Ward.js";
-
-
+import mongoose from "mongoose";
+const { ObjectId } = mongoose.Types;
 // ✅ Create new Ward
 export const createWard = async (req, res) => {
   try {
@@ -48,7 +48,6 @@ export const createWard = async (req, res) => {
 export const getWardsByPanchayat = async (req, res) => {
   try {
     const { id } = req.params; // Get panchayat ID from URL params
-    console.log(id,'id');
     
     // Validate panchayat exists
     const panchayat = await Panchayat.findById(id);
@@ -58,13 +57,11 @@ export const getWardsByPanchayat = async (req, res) => {
         message: "Panchayat not found"
       });
     }
-console.log(panchayat,'panchayat');
 
     // Find wards for the specific panchayat
     const wards = await Ward.find({ panchayat: panchayat._id })
       .populate("panchayat", "name location")
       .sort({ wardNumber: 1 }); // Sort by ward number
-console.log(wards,'wards');
 
     res.status(200).json({
       success: true,
@@ -147,5 +144,87 @@ export const getBoothsByWard = async (req, res) => {
       message: "Server Error",
       error: error.message
     });
+  }
+};
+
+// ✅ Update Ward by ID
+export const updateWard = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { wardNumber, name, pollingBooth } = req.body;
+
+    // Validate ward exists
+    const existingWard = await Ward.findById(id);
+    if (!existingWard) {
+      return res.status(404).json({
+        success: false,
+        message: "Ward not found"
+      });
+    }
+
+    // Check for duplicate ward number in same panchayat (if ward number is being changed)
+    if (wardNumber && wardNumber !== existingWard.wardNumber) {
+      const duplicateWard = await Ward.findOne({ 
+        wardNumber, 
+        panchayat: existingWard.panchayat,
+        _id: { $ne: id }
+      });
+      if (duplicateWard) {
+        return res.status(400).json({
+          success: false,
+          message: "Ward number already exists in this Panchayat"
+        });
+      }
+    }
+
+    // Update ward
+    const updatedWard = await Ward.findByIdAndUpdate(
+      id,
+      {
+        wardNumber: wardNumber || existingWard.wardNumber,
+        name: name || existingWard.name,
+        pollingBooth: pollingBooth || existingWard.pollingBooth
+      },
+      { new: true, runValidators: true }
+    ).populate("panchayat", "name location");
+
+    res.status(200).json({
+      success: true,
+      message: "Ward updated successfully",
+      ward: updatedWard
+    });
+  } catch (error) {
+    console.error("Error updating ward:", error);
+    res.status(500).json({
+      success: false,
+      message: "Server Error",
+      error: error.message
+    });
+  }
+};
+
+// ✅ Delete Ward by ID
+export const deleteWard = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // ---- 1. Validate ObjectId ------------------------------------------------
+    if (!ObjectId.isValid(id)) {
+      return res.status(400).json({ success: false, message: "Invalid ward ID" });
+    }
+
+    // ---- 2. Delete (no extra checks) ----------------------------------------
+    const result = await Ward.deleteOne({ _id: id });
+
+    if (result.deletedCount === 0) {
+      return res.status(404).json({ success: false, message: "Ward not found" });
+    }
+
+    res.status(200).json({ success: true, message: "Ward deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting ward:", error);
+    res
+      .status(500)
+      .json({ success: false, message: "Server error", error: error.message });
   }
 };

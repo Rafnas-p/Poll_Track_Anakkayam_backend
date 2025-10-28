@@ -32,11 +32,9 @@ export const registerAdmin = async (req, res) => {
       password: hashedPassword,
       role: 'admin',
     });
-    console.log("hai");
     
 
     await admin.save();
-console.log(admin,'admin');
 
     res.status(201).json({ message: 'Admin registered successfully' });
   } catch (error) {
@@ -55,7 +53,6 @@ export const loginAdmin = async (req, res) => {
     }
 
     const { email, password } = req.body;
-console.log(req.body,'req.body');
 
     // Check if admin exists
     const admin = await Admin.findOne({ email });
