@@ -19,20 +19,8 @@ const __dirname = path.dirname(__filename);
 
 const app = express();
 const port = 3001;
-
-const allowedOrigins = [
-  "http://localhost:5173",
-  "https://poll-track-anakkayam-front-dccf6k939-rafnas-ps-projects.vercel.app"
-];
-
 app.use(cors({
-  origin: function (origin, callback) {
-    if (!origin || allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      callback(new Error("Not allowed by CORS"));
-    }
-  },
+  origin: true,  // allows all origins
   credentials: true,
 }));
 
